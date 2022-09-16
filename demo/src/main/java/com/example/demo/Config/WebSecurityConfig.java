@@ -18,7 +18,7 @@ public class WebSecurityConfig {
 
 
     private static final String[] WHITE_LIST_URLS = {
-            "/user","/swagger-ui/","/verifyRegistration*","/resendVerifyToken*","/resetPassword*","/savePassword*","/changePassword*","/login*"
+            "/user","/swagger-ui/","/verifyRegistration*","/resendVerifyToken*","/resetPassword*","/savePassword*","/changePassword*","/login*","/user/login"
     };
 
     @Bean

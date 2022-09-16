@@ -36,13 +36,13 @@ public class UserController {
     private ApplicationEventPublisher Publisher;
 
     @GetMapping("/login")
-    public String loginUser(@RequestBody @NotNull LoginModel loginModel) throws GeneralException, UserNotFoundException {
-        if (loginModel.getEmailID() == null || loginModel.getPassword() == null) {
-            throw new GeneralException("Email or Password should not be null [Email:" + loginModel.getEmailID() + ", Password:" + loginModel.getPassword() + "]");
+    public String loginUser(@RequestParam("emailId") String emailID, @RequestParam("password") String password) throws GeneralException, UserNotFoundException {
+        if (emailID == null || password == null) {
+            return "Email or Password should not be null [Email:" + emailID + ", Password:" + password + "]";
         }
-        if (!loginModel.getPassword().isEmpty() && !loginModel.getEmailID().isEmpty() && !loginModel.getEmailID().isBlank() && !loginModel.getPassword().isBlank())
-            return userService.loginUser(loginModel);
-        throw new GeneralException("Email-ID or Password should not be blank");
+        if (!password.isEmpty() && !emailID.isEmpty() && !emailID.isBlank() && !password.isBlank())
+            return userService.loginUser(emailID, password);
+        return "Email-ID or Password should not be blank";
     }
 
     @PostMapping

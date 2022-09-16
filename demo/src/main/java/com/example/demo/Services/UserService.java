@@ -45,5 +45,5 @@ public interface UserService {
 
     boolean checkIfValidOldPassword(User user, String oldPassword);
 
-    String loginUser(LoginModel loginModel) throws UserNotFoundException, GeneralException;
+    String loginUser(String emailID, String password) throws UserNotFoundException, GeneralException;
 }

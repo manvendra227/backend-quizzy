@@ -36,19 +36,19 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public String loginUser(LoginModel loginModel) throws UserNotFoundException, GeneralException {
-        Optional<User> user = Optional.ofNullable(userRepository.findByEmailID(loginModel.getEmailID()));
+    public String loginUser(String emailId, String password) throws UserNotFoundException, GeneralException {
+        Optional<User> user = Optional.ofNullable(userRepository.findByEmailID(emailId));
         if (user.isEmpty()) {
-            throw new UserNotFoundException("User does not exists with following email-ID : " + loginModel.getEmailID() + ", Signup to make an account");
+            return "User does not exists with following email-ID : " + emailId + ", Signup to make an account";
         }
-        boolean check = passwordEncoder.matches(loginModel.getPassword(), user.get().getPassword());
+        boolean check = passwordEncoder.matches(password, user.get().getPassword());
         if (user.get().isEnabled()) {
             if (check) {
                 return "Login Success";
             }
-            throw new GeneralException("Password did not match");
+            return "Password did not match";
         }
-        throw new GeneralException("User email :" + loginModel.getEmailID() + " Not verified,Check mail and verify ID");
+        return "User email :" + emailId + " Not verified,Check mail and verify ID";
     }
 
     @Override
