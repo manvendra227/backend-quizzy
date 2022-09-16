@@ -26,4 +26,5 @@ public interface QuizService {
 
     List<QuizShortModel> fetchUserUploads(String authorID);
 
+    Page<QuizShortModel> loadQuiz(Pageable pageable);
 }

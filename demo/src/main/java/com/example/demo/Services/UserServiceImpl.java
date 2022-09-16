@@ -52,24 +52,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User saveUser(UserModel userModel) {
-        String id = "user" + userModel.getEmailId();
-        String hashed = Hashing.sha256()
-                .hashString(id, StandardCharsets.UTF_8)
-                .toString();
-        User user = new User();
-        user.setUserId(hashed);
-        user.setName(userModel.getName());
-        user.setEmailID(userModel.getEmailId());
-        user.setPassword(passwordEncoder.encode(userModel.getPassword()));
-        user.setGender(userModel.getGender());
-        user.setStatus(userModel.getStatus());
-        user.setDate_of_birth(userModel.getDob());
-        user.setVerified(false);
-        user.setTimestamp(Calendar.getInstance().getTime());
-        user.setUserPersonal(new UserPersonal(0, 0, new ArrayList<>(), new ArrayList<>()));
-        userRepository.save(user);
-        return user;
+    public User saveUser(UserModel userModel) throws GeneralException {
+        Optional<User> found = Optional.ofNullable(userRepository.findByEmailID(userModel.getEmailId()));
+        if (found.isEmpty()) {
+            String id = "user" + userModel.getEmailId();
+            String hashed = Hashing.sha256()
+                    .hashString(id, StandardCharsets.UTF_8)
+                    .toString();
+            User user = new User();
+            user.setUserId(hashed);
+            user.setName(userModel.getName().trim());
+            user.setEmailID(userModel.getEmailId());
+            user.setPassword(passwordEncoder.encode(userModel.getPassword()));
+            user.setGender(userModel.getGender());
+            user.setStatus(userModel.getStatus());
+            user.setDate_of_birth(userModel.getDob());
+            user.setVerified(false);
+            user.setTimestamp(Calendar.getInstance().getTime());
+            user.setUserPersonal(new UserPersonal(0, 0, new ArrayList<>(), new ArrayList<>()));
+            userRepository.save(user);
+            return user;
+        }
+        else throw new GeneralException("User Already exists with Email :"+userModel.getEmailId());
     }
 
 
@@ -97,7 +101,7 @@ public class UserServiceImpl implements UserService {
 
         user.setEnabled(true);
         userRepository.save(user);
-//        verificationTokenRepository.delete(verificationToken);
+        verificationTokenRepository.delete(verificationToken);
         return "valid";
     }
 
@@ -139,7 +143,7 @@ public class UserServiceImpl implements UserService {
             return "expired";
         }
 
-//        passwordResetTokenRepository.delete(passwordResetToken);
+        passwordResetTokenRepository.delete(passwordResetToken);
         return "valid";
     }
 

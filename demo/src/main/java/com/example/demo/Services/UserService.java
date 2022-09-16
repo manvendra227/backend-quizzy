@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User saveUser(UserModel userModel);
+    User saveUser(UserModel userModel) throws GeneralException;
 
     User findUserById(String userID) throws UserNotFoundException;
 

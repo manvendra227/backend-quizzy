@@ -87,4 +87,12 @@ public class QuizController {
     List<QuizShortModel> fetchUserUploads(@RequestParam String authorID) {
         return quizService.fetchUserUploads(authorID);
     }
+
+    @GetMapping("/load")
+    Page<QuizShortModel> loadQuiz(@RequestParam(defaultValue = "0") Integer page,
+                                  @RequestParam(defaultValue = "5") Integer size){
+        Pageable pageable = PageRequest.of(page, size);
+        return quizService.loadQuiz(pageable);
+    }
+
 }

@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -165,6 +164,29 @@ public class QuizServiceImpl implements QuizService {
                         quiz1.getTimestamp()))
                 .sorted(Comparator.comparing(QuizShortModel::getTimestamp))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<QuizShortModel> loadQuiz(Pageable pageable) {
+        List<Quiz> found=quizRepository.findAll();
+
+        List<QuizShortModel> quiz=found.stream()
+                .map(quiz1 -> new QuizShortModel(
+                        quiz1.getQuizID(),
+                        quiz1.getTitle(),
+                        quiz1.getDescription(),
+                        quiz1.getDifficulty(),
+                        quiz1.getAuthorID(),
+                        quiz1.getAuthorName(),
+                        quiz1.getTimesPlayed(),
+                        quiz1.getAvgRating(),
+                        quiz1.getTimestamp()))
+                .sorted(Comparator.comparing(QuizShortModel::getTimesPlayed).reversed())
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), quiz.size());
+        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size());
     }
 
 

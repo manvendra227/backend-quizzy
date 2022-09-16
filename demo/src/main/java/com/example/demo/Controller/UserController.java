@@ -12,6 +12,8 @@ import com.example.demo.Services.UserService;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Exceptions.UserNotFoundException;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.validation.annotation.Validated;
@@ -35,6 +37,7 @@ public class UserController {
     @Autowired
     private ApplicationEventPublisher Publisher;
 
+    Logger logger = LoggerFactory.getLogger(UserController.class);
     @GetMapping("/login")
     public String loginUser(@RequestParam("emailId") String emailID, @RequestParam("password") String password) throws GeneralException, UserNotFoundException {
         if (emailID == null || password == null) {
@@ -46,13 +49,19 @@ public class UserController {
     }
 
     @PostMapping
-    public String saveUser(@RequestBody UserModel userModel, final HttpServletRequest request) throws GeneralException {
+    public String saveUser(@RequestBody UserModel userModel, final HttpServletRequest request)  {
         String check = CheckUserModel(userModel);
-        if (check.equalsIgnoreCase("Success")) {
-            User user = userService.saveUser(userModel);
-            Publisher.publishEvent(new RegistrationCompleteEvent(user, applicationUrl(request)));
-            return user.getUserId();
+        try {
+            if (check.equalsIgnoreCase("Success")) {
+                User user = userService.saveUser(userModel);
+                Publisher.publishEvent(new RegistrationCompleteEvent(user, applicationUrl(request)));
+                return "success";
+            }
         }
+        catch (GeneralException e){
+            return e.getMessage();
+        }
+
         return check;
     }
 
@@ -172,19 +181,21 @@ public class UserController {
         return url;
     }
 
-    private String CheckUserModel(UserModel userModel) throws GeneralException {
+    private String CheckUserModel(UserModel userModel){
         Pattern p = Pattern.compile("^(.+)@(\\S+)$");
-        if (userModel.getName().isEmpty() || userModel.getName().isBlank())
-            throw new GeneralException("Name should not be blank");
-        else if (userModel.getEmailId().isBlank() || userModel.getEmailId().isEmpty())
-            throw new GeneralException("Email-ID should not be blank");
-        else if (!p.matcher(userModel.getEmailId()).find())
-            throw new GeneralException("Email-ID does not follow email pattern");
-        else if (userModel.getPassword().isBlank() || userModel.getPassword().isEmpty())
-            throw new GeneralException("Password should not be blank");
-        else if (userModel.getPassword().length() <= 7)
-            throw new GeneralException("Password should be atleast 8 characters long");
-        else return "Success";
+        if (userModel.getName().isEmpty() || userModel.getName().isBlank() || userModel.getName()==null)
+            return "Name should not be blank";
+        if (userModel.getEmailId().isBlank() || userModel.getEmailId().isEmpty() || userModel.getEmailId()==null)
+            return "Email-ID should not be blank";
+        if (!p.matcher(userModel.getEmailId()).find())
+            return "Email-ID does not follow email pattern";
+        if (userModel.getPassword().isBlank() || userModel.getPassword().isEmpty() || userModel.getPassword()==null)
+            return "Password should not be blank";
+        if (userModel.getPassword().length() <= 7)
+            return "Password should be atleast 8 characters long";
+        if(!userModel.getPassword().equalsIgnoreCase(userModel.getMatchingPassword()))
+            return "Password not same";
+         return "Success";
     }
 
 }

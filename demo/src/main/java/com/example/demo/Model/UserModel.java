@@ -14,8 +14,9 @@ import java.util.Date;
 public class UserModel {
     private String name;
     private String emailId;
-    private Date dob;
+    private String dob;
     private String password;
+    private String matchingPassword;
     private Gender gender;
     private Status status;
 }

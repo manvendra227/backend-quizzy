@@ -44,7 +44,7 @@ public class User {
 
     private boolean enabled;
     private Gender gender;
-    private Date date_of_birth;
+    private String date_of_birth;
     private Status status;
     private MongoProperties.Gridfs profilePic;
     private boolean isVerified;
