@@ -167,7 +167,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public Page<QuizShortModel> loadQuiz(Pageable pageable) {
+    public List<QuizShortModel> loadQuiz() {
         List<Quiz> found=quizRepository.findAll();
 
         List<QuizShortModel> quiz=found.stream()
@@ -184,9 +184,10 @@ public class QuizServiceImpl implements QuizService {
                 .sorted(Comparator.comparing(QuizShortModel::getTimesPlayed).reversed())
                 .collect(Collectors.toList());
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), quiz.size());
-        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size());
+//        int start = (int) pageable.getOffset();
+//        int end = Math.min((start + pageable.getPageSize()), quiz.size());
+//        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size());
+        return quiz;
     }
 
 

@@ -46,4 +46,6 @@ public interface UserService {
     boolean checkIfValidOldPassword(User user, String oldPassword);
 
     String loginUser(String emailID, String password) throws UserNotFoundException, GeneralException;
+
+    List<String> fetchSearchList(String emailId);
 }

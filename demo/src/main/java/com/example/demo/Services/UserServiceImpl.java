@@ -51,6 +51,8 @@ public class UserServiceImpl implements UserService {
         return "User email :" + emailId + " Not verified,Check mail and verify ID";
     }
 
+
+
     @Override
     public User saveUser(UserModel userModel) throws GeneralException {
         Optional<User> found = Optional.ofNullable(userRepository.findByEmailID(userModel.getEmailId()));
@@ -212,5 +214,10 @@ public class UserServiceImpl implements UserService {
         return tempUser.getUserPersonal().getSearch();
     }
 
+    @Override
+    public List<String> fetchSearchList(String emailId) {
+        Optional<User> user= Optional.ofNullable(userRepository.findByEmailID(emailId));
+        return user.map(value -> value.getUserPersonal().getSearch()).orElse(null);
+    }
 
 }

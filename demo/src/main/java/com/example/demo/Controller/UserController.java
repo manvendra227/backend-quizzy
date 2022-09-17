@@ -164,6 +164,10 @@ public class UserController {
         return userService.updateUserSearchList(userID, searchTag);
     }
 
+    @GetMapping("userpersonal/searchlist")
+    public List<String> fetchSearchList(@RequestParam("emailId") String emailId){
+        return userService.fetchSearchList(emailId);
+    }
 
     //Not Routes
     private String applicationUrl(HttpServletRequest request) {

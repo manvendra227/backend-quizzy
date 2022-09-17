@@ -89,10 +89,12 @@ public class QuizController {
     }
 
     @GetMapping("/load")
-    Page<QuizShortModel> loadQuiz(@RequestParam(defaultValue = "0") Integer page,
-                                  @RequestParam(defaultValue = "5") Integer size){
-        Pageable pageable = PageRequest.of(page, size);
-        return quizService.loadQuiz(pageable);
+    List<QuizShortModel> loadQuiz(
+//            @RequestParam(defaultValue = "0") Integer page,
+//                                  @RequestParam(defaultValue = "5") Integer size
+    ){
+//        Pageable pageable = PageRequest.of(page, size);
+        return quizService.loadQuiz();
     }
 
 }
