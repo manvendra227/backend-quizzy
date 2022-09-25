@@ -28,7 +28,6 @@ public class Quiz {
 
     @NotEmpty
     @NotNull
-    @Size(min = 10,max = 80)
     private String title;
     @NotNull
     private String description;

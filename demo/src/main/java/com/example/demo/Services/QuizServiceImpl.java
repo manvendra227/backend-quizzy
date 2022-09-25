@@ -1,6 +1,7 @@
 package com.example.demo.Services;
 
 import com.example.demo.Collection.Quiz;
+import com.example.demo.Collection.extras.Questions;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Model.QuizShortModel;
 import com.example.demo.Repository.QuizRepository;
@@ -32,7 +33,7 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public Quiz findQuizById(String quizID) throws QuizNotFoundException {
         Optional<Quiz> quiz = quizRepository.findById(quizID);
-        if (!quiz.isPresent()) {
+        if (quiz.isEmpty()) {
             throw new QuizNotFoundException("Quiz does not exists");
         }
         return quiz.get();
@@ -105,7 +106,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public Page<QuizShortModel> search(String searchKey, Pageable pageable) throws GeneralException {
+    public List<QuizShortModel> search(String searchKey, Pageable pageable) throws GeneralException {
         Query query = new Query();
         List<Criteria> criteria = new ArrayList<>();
 
@@ -145,7 +146,7 @@ public class QuizServiceImpl implements QuizService {
 
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), quiz.size());
-        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size());
+        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size()).getContent();
     }
 
     @Override
@@ -167,7 +168,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public List<QuizShortModel> loadQuiz() {
+    public List<QuizShortModel> loadQuiz(Pageable pageable) {
         List<Quiz> found=quizRepository.findAll();
 
         List<QuizShortModel> quiz=found.stream()
@@ -184,10 +185,18 @@ public class QuizServiceImpl implements QuizService {
                 .sorted(Comparator.comparing(QuizShortModel::getTimesPlayed).reversed())
                 .collect(Collectors.toList());
 
-//        int start = (int) pageable.getOffset();
-//        int end = Math.min((start + pageable.getPageSize()), quiz.size());
-//        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size());
-        return quiz;
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), quiz.size());
+        return new PageImpl<>(quiz.subList(start, end), pageable, quiz.size()).getContent();
+    }
+
+    @Override
+    public Questions findQuestionById(String quizID) throws QuizNotFoundException {
+        Optional<Quiz> quiz = quizRepository.findById(quizID);
+        if (quiz.isEmpty()) {
+            throw new QuizNotFoundException("Quiz does not exists");
+        }
+        return quiz.get().getQuestions();
     }
 
 

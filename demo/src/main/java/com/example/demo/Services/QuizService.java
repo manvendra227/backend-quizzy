@@ -1,6 +1,7 @@
 package com.example.demo.Services;
 
 import com.example.demo.Collection.Quiz;
+import com.example.demo.Collection.extras.Questions;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Exceptions.QuizNotFoundException;
 import com.example.demo.Model.QuizShortModel;
@@ -22,9 +23,11 @@ public interface QuizService {
 
     Page<QuizShortModel> searchQuiz(String title, String desc, String author, Pageable pageable);
 
-    Page<QuizShortModel> search(String searchKey, Pageable pageable) throws GeneralException;
+    List<QuizShortModel> search(String searchKey, Pageable pageable) throws GeneralException;
 
     List<QuizShortModel> fetchUserUploads(String authorID);
 
-    List<QuizShortModel> loadQuiz();
+    List<QuizShortModel> loadQuiz(Pageable pageable);
+
+    Questions findQuestionById(String quizID) throws QuizNotFoundException;
 }

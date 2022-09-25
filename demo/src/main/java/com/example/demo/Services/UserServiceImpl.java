@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public String loginUser(String emailId, String password) throws UserNotFoundException, GeneralException {
+    public String loginUser(String emailId, String password) {
         Optional<User> user = Optional.ofNullable(userRepository.findByEmailID(emailId));
         if (user.isEmpty()) {
             return "User does not exists with following email-ID : " + emailId + ", Signup to make an account";
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         boolean check = passwordEncoder.matches(password, user.get().getPassword());
         if (user.get().isEnabled()) {
             if (check) {
-                return "Login Success";
+                return "Login Success | "+user.get().getUserId()+" | "+user.get().getName();
             }
             return "Password did not match";
         }

@@ -15,8 +15,8 @@ import java.nio.DoubleBuffer;
 @ToString
 public class Score {
 
-    private Double maxScore;
+    private Integer maxScore;
     private Double passingScore;
-    private Double onCorrect;
-    private Double onWrong;
+    private Integer onCorrect;
+    private Integer onWrong;
 }
