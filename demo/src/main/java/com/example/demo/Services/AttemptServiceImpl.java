@@ -2,10 +2,13 @@ package com.example.demo.Services;
 
 import com.example.demo.Collection.Attempt;
 import com.example.demo.Collection.Quiz;
+import com.example.demo.Collection.User;
+import com.example.demo.Collection.extras.UserPersonal;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Model.AttemptModelQuiz;
 import com.example.demo.Model.AttemptModelQuizUser;
 import com.example.demo.Model.AttemptModelUser;
+import com.example.demo.Model.AttemptSaveModel;
 import com.example.demo.Repository.AttemptRepository;
 import com.example.demo.Repository.QuizRepository;
 import com.example.demo.Repository.UserRepository;
@@ -16,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -37,10 +39,28 @@ public class AttemptServiceImpl implements AttemptService {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public void saveAttempt(Attempt attempt) throws GeneralException {
-        Optional<Quiz> quiz = quizRepository.findById(attempt.getQuizId());
+    public void saveAttempt(AttemptSaveModel attemptSaveModel) throws GeneralException {
+        Optional<Quiz> quiz = quizRepository.findById(attemptSaveModel.getQuizId());
         if (quiz.isEmpty()) throw new GeneralException("Quiz Does not exists with given id");
+        Attempt attempt=new Attempt();
+        attempt.setUserId(attemptSaveModel.getUserId());
+        attempt.setQuizId(attemptSaveModel.getQuizId());
+        attempt.setScore(attemptSaveModel.getScore());
+        attempt.setStartTime(attemptSaveModel.getStartTime());
+        attempt.setEndTime(attemptSaveModel.getEndTime());
+        attempt.setFeedback(attemptSaveModel.getFeedback());
         attemptRepository.save(attempt);
+
+        quiz.get().setTimesPlayed(quiz.get().getTimesPlayed()+1);
+        quizRepository.save(quiz.get());
+
+        Optional<User> user=userRepository.findById(attemptSaveModel.getUserId());
+        if (user.isPresent()){
+            UserPersonal userPersonal=user.get().getUserPersonal();
+            userPersonal.setQuestionsSolved(userPersonal.getQuestionsSolved()+attemptSaveModel.getNewQuestions());
+            userPersonal.setQuestionsCorrect(userPersonal.getQuestionsCorrect()+attemptSaveModel.getNewCorrect());
+            userRepository.save(user.get());
+        }
     }
 
     @Override

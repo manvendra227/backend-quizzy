@@ -5,6 +5,7 @@ import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Model.AttemptModelQuiz;
 import com.example.demo.Model.AttemptModelQuizUser;
 import com.example.demo.Model.AttemptModelUser;
+import com.example.demo.Model.AttemptSaveModel;
 import com.example.demo.Services.AttemptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,8 +28,8 @@ public class AttemptController {
 
     //Saves a attempt whenever quiz ends
     @PostMapping
-    public void saveAttempt(@RequestBody Attempt attempt) throws GeneralException {
-        attemptService.saveAttempt(attempt);
+    public void saveAttempt(@RequestBody AttemptSaveModel attemptSaveModel) throws GeneralException {
+        attemptService.saveAttempt(attemptSaveModel);
     }
 
     //To refresh database by deleting attempts when quiz or user is deleted
