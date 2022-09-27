@@ -41,20 +41,15 @@ public class AttemptController {
 
     //All past attempts of a user
     @GetMapping("/userAttempts")
-    public Page<AttemptModelUser> fetchPastAttemptsOfUser(@RequestParam String userId,
-                                                          @RequestParam(defaultValue = "0") Integer page,
-                                                          @RequestParam(defaultValue = "10") Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return attemptService.fetchPastAttemptsOfUser(userId, pageable);
+    public List<AttemptModelUser> fetchPastAttemptsOfUser(@RequestParam String userId) {
+        return attemptService.fetchPastAttemptsOfUser(userId);
     }
 
     //All past attempts on a quiz
     @GetMapping("/quizAttempts")
-    public Page<AttemptModelQuiz> fetchPastAttemptsOnQuiz(@RequestParam String quizId,
-                                                          @RequestParam(defaultValue = "0") Integer page,
-                                                          @RequestParam(defaultValue = "10") Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return attemptService.fetchPastAttemptsOnQuiz(quizId, pageable);
+    public List<AttemptModelQuiz> fetchPastAttemptsOnQuiz(@RequestParam String quizId) {
+
+        return attemptService.fetchPastAttemptsOnQuiz(quizId);
     }
 
     //All past attempts by a user on a quiz

@@ -12,6 +12,7 @@ import com.example.demo.Model.AttemptSaveModel;
 import com.example.demo.Repository.AttemptRepository;
 import com.example.demo.Repository.QuizRepository;
 import com.example.demo.Repository.UserRepository;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +44,7 @@ public class AttemptServiceImpl implements AttemptService {
     public void saveAttempt(AttemptSaveModel attemptSaveModel) throws GeneralException {
         Optional<Quiz> quiz = quizRepository.findById(attemptSaveModel.getQuizId());
         if (quiz.isEmpty()) throw new GeneralException("Quiz Does not exists with given id");
-        Attempt attempt=new Attempt();
+        Attempt attempt = new Attempt();
         attempt.setUserId(attemptSaveModel.getUserId());
         attempt.setQuizId(attemptSaveModel.getQuizId());
         attempt.setScore(attemptSaveModel.getScore());
@@ -51,30 +53,35 @@ public class AttemptServiceImpl implements AttemptService {
         attempt.setFeedback(attemptSaveModel.getFeedback());
         attemptRepository.save(attempt);
 
-        quiz.get().setTimesPlayed(quiz.get().getTimesPlayed()+1);
+        Double rating = quiz.get().getAvgRating();
+        int timesRated = quiz.get().getTimesPlayed();
+        double newRating = ((rating * timesRated) + attemptSaveModel.getFeedback()) / (timesRated + 1);
+        quiz.get().setTimesPlayed(quiz.get().getTimesPlayed() + 1);
+        quiz.get().setAvgRating(newRating);
         quizRepository.save(quiz.get());
 
-        Optional<User> user=userRepository.findById(attemptSaveModel.getUserId());
-        if (user.isPresent()){
-            UserPersonal userPersonal=user.get().getUserPersonal();
-            userPersonal.setQuestionsSolved(userPersonal.getQuestionsSolved()+attemptSaveModel.getNewQuestions());
-            userPersonal.setQuestionsCorrect(userPersonal.getQuestionsCorrect()+attemptSaveModel.getNewCorrect());
+
+        Optional<User> user = userRepository.findById(attemptSaveModel.getUserId());
+        if (user.isPresent()) {
+            UserPersonal userPersonal = user.get().getUserPersonal();
+            userPersonal.setQuestionsSolved(userPersonal.getQuestionsSolved() + attemptSaveModel.getNewQuestions());
+            userPersonal.setQuestionsCorrect(userPersonal.getQuestionsCorrect() + attemptSaveModel.getNewCorrect());
             userRepository.save(user.get());
         }
     }
 
     @Override
     public void deleteAllAttempt(String quizId, String userId) {
-        if (quizId!=null && !quizId.isEmpty()){
+        if (quizId != null && !quizId.isEmpty()) {
             attemptRepository.deleteByQuizId(quizId);
         }
-        if(userId!=null && !userId.isEmpty()){
+        if (userId != null && !userId.isEmpty()) {
             attemptRepository.deleteByUserId(userId);
         }
     }
 
     @Override
-    public Page<AttemptModelUser> fetchPastAttemptsOfUser(String userId, Pageable pageable) {
+    public List<AttemptModelUser> fetchPastAttemptsOfUser(String userId) {
 
         List<Attempt> found = attemptRepository.findByUserId(userId);
         List<AttemptModelUser> attempts = found.stream().map(attempt -> new AttemptModelUser(
@@ -83,14 +90,12 @@ public class AttemptServiceImpl implements AttemptService {
                 attempt.getScore(),
                 attempt.getEndTime().getTime() - attempt.getStartTime().getTime(),
                 attempt.getFeedback()
-        )).toList();
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), attempts.size());
-        return new PageImpl<>(attempts.subList(start, end), pageable, attempts.size());
+        )).limit(50).toList();
+        return attempts;
     }
 
     @Override
-    public Page<AttemptModelQuiz> fetchPastAttemptsOnQuiz(String quizId, Pageable pageable) {
+    public List<AttemptModelQuiz> fetchPastAttemptsOnQuiz(String quizId) {
 
         List<Attempt> found = attemptRepository.findByQuizId(quizId);
         List<AttemptModelQuiz> attempts = found.stream().map(attempt -> new AttemptModelQuiz(
@@ -98,10 +103,10 @@ public class AttemptServiceImpl implements AttemptService {
                 userRepository.findById(attempt.getUserId()).get().getName(),
                 attempt.getScore(),
                 attempt.getEndTime().getTime() - attempt.getStartTime().getTime(),
-                attempt.getFeedback())).toList();
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), attempts.size());
-        return new PageImpl<>(attempts.subList(start, end), pageable, attempts.size());
+                attempt.getFeedback(),
+                attempt.getStartTime()
+        )).limit(25).sorted(Comparator.comparing(AttemptModelQuiz::getStartTime).reversed()).toList();
+        return attempts;
     }
 
     @Override
@@ -113,7 +118,8 @@ public class AttemptServiceImpl implements AttemptService {
                 userRepository.findById(attempt.getUserId()).get().getName(),
                 attempt.getScore(),
                 attempt.getEndTime().getTime() - attempt.getStartTime().getTime(),
-                attempt.getFeedback())).sorted(Comparator.comparing(AttemptModelQuiz::getScore).reversed()).limit(3).toList();
+                attempt.getFeedback(),
+                attempt.getStartTime())).sorted(Comparator.comparing(AttemptModelQuiz::getScore).reversed()).limit(3).toList();
     }
 
     @Override
@@ -123,7 +129,7 @@ public class AttemptServiceImpl implements AttemptService {
                         attempt.getStartTime(),
                         attempt.getScore(),
                         attempt.getEndTime().getTime() - attempt.getStartTime().getTime()))
-                .sorted(Comparator.comparing(AttemptModelQuizUser::getTimestamp)).collect(Collectors.toList());
+                .sorted(Comparator.comparing(AttemptModelQuizUser::getTimestamp).reversed()).collect(Collectors.toList());
     }
 
 }

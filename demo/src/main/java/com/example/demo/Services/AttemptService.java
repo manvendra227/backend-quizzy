@@ -13,9 +13,9 @@ import java.util.List;
 public interface AttemptService {
     void saveAttempt(AttemptSaveModel attempt) throws GeneralException;
 
-    Page<AttemptModelUser> fetchPastAttemptsOfUser(String userId, Pageable pageable);
+    List<AttemptModelUser> fetchPastAttemptsOfUser(String userId);
 
-    Page<AttemptModelQuiz> fetchPastAttemptsOnQuiz(String quizId, Pageable pageable);
+    List<AttemptModelQuiz> fetchPastAttemptsOnQuiz(String quizId);
 
     List<AttemptModelQuiz> findTop3(String quizId);
 
