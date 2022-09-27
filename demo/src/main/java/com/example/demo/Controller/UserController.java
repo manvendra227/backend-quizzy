@@ -134,8 +134,8 @@ public class UserController {
         return "User Not Found";
     }
 
-    @GetMapping("/{id}")
-    public User findUserByID(@PathVariable("id") String userID) throws UserNotFoundException {
+    @GetMapping
+    public User findUserByID(@RequestParam("userId") String userID) throws UserNotFoundException {
         return userService.findUserById(userID);
     }
 

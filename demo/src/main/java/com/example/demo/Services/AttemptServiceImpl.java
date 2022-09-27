@@ -84,13 +84,14 @@ public class AttemptServiceImpl implements AttemptService {
     public List<AttemptModelUser> fetchPastAttemptsOfUser(String userId) {
 
         List<Attempt> found = attemptRepository.findByUserId(userId);
+
         List<AttemptModelUser> attempts = found.stream().map(attempt -> new AttemptModelUser(
                 attempt.getQuizId(),
                 quizRepository.findById(attempt.getQuizId()).get().getTitle(),
                 attempt.getScore(),
+                (quizRepository.findById(attempt.getQuizId()).get().getQuestions().getScore().getPassingScore()),
                 attempt.getEndTime().getTime() - attempt.getStartTime().getTime(),
-                attempt.getFeedback()
-        )).limit(50).toList();
+                attempt.getStartTime())).limit(50).sorted(Comparator.comparing(AttemptModelUser::getStartTime).reversed()).toList();
         return attempts;
     }
 
