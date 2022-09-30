@@ -18,4 +18,6 @@ public interface AttemptRepository extends MongoRepository<Attempt, ObjectId> {
     void deleteByQuizId(String quizId);
 
     void deleteByUserId(String userId);
+
+    void deleteAllByUserId(String userId);
 }

@@ -1,6 +1,5 @@
 package com.example.demo.Controller;
 
-import com.example.demo.Collection.Attempt;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Model.AttemptModelQuiz;
 import com.example.demo.Model.AttemptModelQuizUser;
@@ -8,15 +7,8 @@ import com.example.demo.Model.AttemptModelUser;
 import com.example.demo.Model.AttemptSaveModel;
 import com.example.demo.Services.AttemptService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 @RestController

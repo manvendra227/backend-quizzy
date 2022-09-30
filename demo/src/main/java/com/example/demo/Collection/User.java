@@ -6,6 +6,8 @@ import com.example.demo.Collection.extras.UserPersonal;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.ToString;
+import lombok.extern.jbosslog.JBossLog;
+import org.bson.types.Binary;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
@@ -46,7 +48,7 @@ public class User {
     private Gender gender;
     private String date_of_birth;
     private Status status;
-    private MongoProperties.Gridfs profilePic;
+    private String photo;
     private boolean isVerified;
     private Date timestamp;
     private UserPersonal userPersonal;

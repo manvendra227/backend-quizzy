@@ -1,31 +1,32 @@
 package com.example.demo.Services;
 
+import com.example.demo.Collection.Photo;
 import com.example.demo.Collection.User;
-import com.example.demo.Collection.extras.UserPersonal;
 import com.example.demo.Collection.VerificationToken;
-import com.example.demo.Model.LoginModel;
 import com.example.demo.Model.UserModel;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Exceptions.UserNotFoundException;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
+
     User saveUser(UserModel userModel) throws GeneralException;
 
     User findUserById(String userID) throws UserNotFoundException;
 
-    void deleteUserById(String id);
+    String deleteUserById(String id, String password);
 
     User updateUser(String userID, User user);
 
     List<String> updateUserWishList(String userID, String quizID);
 
     List<String> updateUserSearchList(String userID, String searchTag);
-
-
-    UserPersonal updateUserAfterQuiz(String userID, int newQuestions, int correctNewQuestions);
 
     void saveVerificationTokenForUser(User user, String token);
 
@@ -48,4 +49,8 @@ public interface UserService {
     String loginUser(String emailID, String password) throws UserNotFoundException, GeneralException;
 
     List<String> fetchSearchList(String emailId);
+
+    String saveUserPhoto(String originalFilename, MultipartFile photo, String emailId) throws IOException;
+
+    Photo getPhoto(String emailId) throws Exception;
 }

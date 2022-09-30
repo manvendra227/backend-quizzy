@@ -1,22 +1,31 @@
 package com.example.demo.Services;
 
 import com.example.demo.Collection.PasswordResetToken;
+import com.example.demo.Collection.Photo;
 import com.example.demo.Collection.User;
 import com.example.demo.Collection.VerificationToken;
 import com.example.demo.Collection.extras.UserPersonal;
-import com.example.demo.Model.LoginModel;
 import com.example.demo.Model.UserModel;
-import com.example.demo.Repository.PasswordResetTokenRepository;
-import com.example.demo.Repository.UserRepository;
-import com.example.demo.Repository.VerificationTokenRepository;
+import com.example.demo.Repository.*;
 import com.example.demo.Exceptions.GeneralException;
 import com.example.demo.Exceptions.UserNotFoundException;
 import com.google.common.hash.Hashing;
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -25,10 +34,16 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AttemptRepository attemptRepository;
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private PhotoRepository photoRepository;
     @Autowired
     private MongoTemplate mongoTemplate;
     @Autowired
@@ -44,13 +59,12 @@ public class UserServiceImpl implements UserService {
         boolean check = passwordEncoder.matches(password, user.get().getPassword());
         if (user.get().isEnabled()) {
             if (check) {
-                return "Login Success | "+user.get().getUserId()+" | "+user.get().getName();
+                return "Login Success | " + user.get().getUserId() + " | " + user.get().getName();
             }
             return "Password did not match";
         }
         return "User email :" + emailId + " Not verified,Check mail and verify ID";
     }
-
 
 
     @Override
@@ -74,8 +88,7 @@ public class UserServiceImpl implements UserService {
             user.setUserPersonal(new UserPersonal(0, 0, new ArrayList<>(), new ArrayList<>()));
             userRepository.save(user);
             return user;
-        }
-        else throw new GeneralException("User Already exists with Email :"+userModel.getEmailId());
+        } else throw new GeneralException("User Already exists with Email :" + userModel.getEmailId());
     }
 
 
@@ -177,8 +190,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserById(String id) {
-        userRepository.deleteById(id);
+    public String deleteUserById(String id, String password) {
+        Optional<User> found = userRepository.findById(id);
+
+        if (found.isPresent() && (passwordEncoder.matches(found.get().getPassword(), password))) {
+            userRepository.deleteById(id);
+            attemptRepository.deleteAllByUserId(id);
+            return "Delete Success";
+        }
+        return "Could not delete";
     }
 
     @Override
@@ -187,15 +207,15 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(tempUser);
     }
 
-    @Override
-    public UserPersonal updateUserAfterQuiz(String userID, int newQuestions, int correctNewQuestions) {
-        User tempUser = userRepository.findById(userID).get();
-        UserPersonal userPersonal = tempUser.getUserPersonal();
-        userPersonal.setQuestionsSolved(userPersonal.getQuestionsSolved() + newQuestions);
-        userPersonal.setQuestionsCorrect(userPersonal.getQuestionsCorrect() + correctNewQuestions);
-        userRepository.save(tempUser);
-        return userPersonal;
-    }
+//    @Override
+//    public UserPersonal updateUserAfterQuiz(String userID, int newQuestions, int correctNewQuestions) {
+//        User tempUser = userRepository.findById(userID).get();
+//        UserPersonal userPersonal = tempUser.getUserPersonal();
+//        userPersonal.setQuestionsSolved(userPersonal.getQuestionsSolved() + newQuestions);
+//        userPersonal.setQuestionsCorrect(userPersonal.getQuestionsCorrect() + correctNewQuestions);
+//        userRepository.save(tempUser);
+//        return userPersonal;
+//    }
 
 
     @Override
@@ -216,8 +236,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<String> fetchSearchList(String emailId) {
-        Optional<User> user= Optional.ofNullable(userRepository.findByEmailID(emailId));
+        Optional<User> user = Optional.ofNullable(userRepository.findByEmailID(emailId));
         return user.map(value -> value.getUserPersonal().getSearch()).orElse(null);
     }
+
+    @Override
+    public String saveUserPhoto(String originalFilename, MultipartFile photo, String emailId) throws IOException {
+
+        Optional<User> found = Optional.ofNullable(userRepository.findByEmailID(emailId));
+        if (found.isPresent()) {
+            Photo _photo = new Photo();
+            _photo.setEmailId(emailId);
+            _photo.setPhotoName(originalFilename);
+            _photo.setPhoto(new Binary(BsonBinarySubType.BINARY, photo.getBytes()));
+            photoRepository.save(_photo);
+
+            String url = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/user/photo/download/")
+                    .path(_photo.getEmailId())
+                    .toUriString();
+            found.get().setPhoto(url);
+            userRepository.save(found.get());
+
+            return "success";
+        }
+        return "failed";
+    }
+
+    @Override
+    public Photo getPhoto(String emailId) throws Exception {
+        return photoRepository.findById(emailId)
+                .orElseThrow(()->new Exception("File not found with id = "+emailId));
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+import com.example.demo.Collection.Photo;
 import com.example.demo.Collection.User;
 import com.example.demo.Collection.VerificationToken;
 import com.example.demo.Collection.extras.UserPersonal;
@@ -16,10 +17,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +47,8 @@ public class UserController {
     private ApplicationEventPublisher Publisher;
 
     Logger logger = LoggerFactory.getLogger(UserController.class);
-    @GetMapping("/login")
+
+    @GetMapping("/login")//
     public String loginUser(@RequestParam("emailId") String emailID, @RequestParam("password") String password) throws GeneralException, UserNotFoundException {
         if (emailID == null || password == null) {
             return "Email or Password should not be null [Email:" + emailID + ", Password:" + password + "]";
@@ -48,7 +58,7 @@ public class UserController {
         return "Email-ID or Password should not be blank";
     }
 
-    @PostMapping
+    @PostMapping//
     public String saveUser(@RequestBody UserModel userModel, final HttpServletRequest request)  {
         String check = CheckUserModel(userModel);
         try {
@@ -65,7 +75,23 @@ public class UserController {
         return check;
     }
 
-    @GetMapping("/verifyRegistration")
+    @PostMapping("/photo")
+    public String savePhoto(@RequestParam("photo") MultipartFile photo,@RequestParam("emailId") String emailId) throws IOException {
+        return userService.saveUserPhoto(photo.getOriginalFilename(),photo,emailId);
+    }
+
+    @GetMapping("/download/{emailId}")
+    public ResponseEntity<Resource> getPhoto(@PathVariable("emailId") String emailId) throws Exception {
+        Photo photo=null;
+        photo=userService.getPhoto(emailId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+photo.getPhotoName()+"\"")
+                .body(new ByteArrayResource(photo.getPhoto().getData()));
+    }
+
+    @GetMapping("/verifyRegistration")//
     public String verifyRegistration(@RequestParam("token") String token) {
         String result = userService.validateVerificationToken(token);
         if (result.equalsIgnoreCase("valid")) {
@@ -134,14 +160,15 @@ public class UserController {
         return "User Not Found";
     }
 
-    @GetMapping
+
+    @GetMapping//
     public User findUserByID(@RequestParam("userId") String userID) throws UserNotFoundException {
         return userService.findUserById(userID);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUserById(@PathVariable("id") String userID) {
-        userService.deleteUserById(userID);
+    public String deleteUserById(@PathVariable("id") String userID,@RequestParam("password") String password) {
+        return userService.deleteUserById(userID,password);
     }
 
     @PutMapping("/{id}")
@@ -149,10 +176,6 @@ public class UserController {
         return userService.updateUser(userID, user);
     }
 
-    @PutMapping("/userpersonal/{id}")
-    public UserPersonal updateUserAfterQuiz(@PathVariable("id") String userID, @RequestParam int newQuestions, @RequestParam int correctNewQuestions) {
-        return userService.updateUserAfterQuiz(userID, newQuestions, correctNewQuestions);
-    }
 
     @PutMapping("/userpersonal/wishlist/{id}")
     public List<String> updateWishlist(@PathVariable("id") String userID, @RequestParam String quizID) {

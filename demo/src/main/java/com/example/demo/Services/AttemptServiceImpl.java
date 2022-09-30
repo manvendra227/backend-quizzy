@@ -87,9 +87,9 @@ public class AttemptServiceImpl implements AttemptService {
 
         List<AttemptModelUser> attempts = found.stream().map(attempt -> new AttemptModelUser(
                 attempt.getQuizId(),
-                quizRepository.findById(attempt.getQuizId()).get().getTitle(),
+                quizRepository.findById(attempt.getQuizId()).isEmpty()?"No title":quizRepository.findById(attempt.getQuizId()).get().getTitle(),
                 attempt.getScore(),
-                (quizRepository.findById(attempt.getQuizId()).get().getQuestions().getScore().getPassingScore()),
+                (quizRepository.findById(attempt.getQuizId()).isEmpty()?40.0:(quizRepository.findById(attempt.getQuizId()).get().getQuestions().getScore().getPassingScore())),
                 attempt.getEndTime().getTime() - attempt.getStartTime().getTime(),
                 attempt.getStartTime())).limit(50).sorted(Comparator.comparing(AttemptModelUser::getStartTime).reversed()).toList();
         return attempts;
